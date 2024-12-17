@@ -23,7 +23,7 @@ mod ui;
 mod utils;
 
 #[derive(Parser, Debug)]
-#[command(about = "github commit race graph in terminal")]
+#[command(version, about = "github commit race graph in terminal")]
 struct Args {
     /// Location of the file with the JSON contributors data
     #[arg(short, long)]
