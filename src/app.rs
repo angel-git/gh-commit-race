@@ -9,31 +9,33 @@ pub enum InputMode {
     Editing,
 }
 pub struct App {
-    pub input: Input,
-    pub repository_url: String,
-    pub input_mode: InputMode,
-    pub should_load_repository: bool,
-    pub should_quit: bool,
+    pub author_blacklist: Vec<String>,
     pub commits: Option<Commits>,
-    pub error: Option<String>,
     pub current_tick: u32,
     pub current_tick_authors: Option<Vec<(String, u32)>>,
     pub current_week: Option<u32>,
+    pub error: Option<String>,
+    pub input: Input,
+    pub input_mode: InputMode,
+    pub repository_url: String,
+    pub should_load_repository: bool,
+    pub should_quit: bool,
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(author_blacklist: Vec<String>) -> Self {
         Self {
-            input: Input::default(),
-            input_mode: InputMode::Editing,
-            repository_url: "".into(),
-            should_quit: false,
-            should_load_repository: false,
+            author_blacklist,
             commits: None,
-            error: None,
             current_tick: 0,
             current_tick_authors: None,
             current_week: None,
+            error: None,
+            input: Input::default(),
+            input_mode: InputMode::Editing,
+            repository_url: "".into(),
+            should_load_repository: false,
+            should_quit: false,
         }
     }
 
@@ -73,7 +75,7 @@ impl App {
         ) {
             Ok(content) => {
                 let contributors = serialize_contributors(content.as_str()).unwrap();
-                let commits = get_commits_per_week(contributors);
+                let commits = get_commits_per_week(contributors, self.author_blacklist.clone());
                 self.error = None;
                 self.commits = Some(commits);
             }
@@ -89,7 +91,7 @@ impl App {
         match file_content_result {
             Ok(file_content) => {
                 let contributors = serialize_contributors(file_content.as_str()).unwrap();
-                let commits = get_commits_per_week(contributors);
+                let commits = get_commits_per_week(contributors, self.author_blacklist.clone());
                 self.error = None;
                 self.commits = Some(commits);
                 self.input_mode = InputMode::Normal;

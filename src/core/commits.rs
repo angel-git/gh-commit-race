@@ -32,10 +32,14 @@ impl Commits {
     }
 }
 
-pub fn get_commits_per_week(contributors: Vec<Contributor>) -> Commits {
+pub fn get_commits_per_week(contributors: Vec<Contributor>, blacklist: Vec<String>) -> Commits {
     let mut commits = Commits::new();
 
     for contributor in contributors {
+        if blacklist.contains(&contributor.author.login) {
+            continue;
+        }
+
         let mut weeks = contributor.weeks;
         weeks.sort_by_key(|w| w.w);
         commits.first_week = weeks.first().unwrap().w;
@@ -148,7 +152,7 @@ mod tests {
             },
         ];
 
-        let commits = get_commits_per_week(contributors);
+        let commits = get_commits_per_week(contributors, Vec::new());
         assert_eq!(commits.weekly_commits.len(), 3);
         assert_eq!(commits.sum_commits.len(), 3);
         assert_eq!(commits.first_week, 1361059200);

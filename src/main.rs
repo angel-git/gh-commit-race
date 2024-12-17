@@ -28,6 +28,9 @@ struct Args {
     /// Location of the file with the JSON contributors data
     #[arg(short, long)]
     json_input: Option<String>,
+    /// List of contributors to blacklist
+    #[arg(short, long)]
+    blacklist: Vec<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -39,7 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let app = App::new();
+    let app = App::new(args.blacklist);
     let app_result = run_app(
         &mut terminal,
         app,
