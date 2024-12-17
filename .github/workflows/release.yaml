@@ -1,8 +1,8 @@
 name: 'publish'
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [created]
+
 jobs:
   release:
     name: Release - ${{ matrix.platform.os-name }}
