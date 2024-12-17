@@ -1,4 +1,5 @@
 use crate::app::{App, InputMode};
+use clap::Parser;
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     crossterm::{
@@ -14,13 +15,12 @@ use std::{
     time::{Duration, Instant},
 };
 use tui_input::backend::crossterm::EventHandler;
-use clap::Parser;
 
 mod app;
-mod github;
-mod utils;
 mod core;
+mod github;
 mod ui;
+mod utils;
 
 #[derive(Parser, Debug)]
 #[command(about = "github commit race graph in terminal")]
@@ -32,7 +32,7 @@ struct Args {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-    
+
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -40,13 +40,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     let app = App::new();
-    let app_result = run_app(&mut terminal, app, Duration::from_millis(250), args.json_input);
+    let app_result = run_app(
+        &mut terminal,
+        app,
+        Duration::from_millis(250),
+        args.json_input,
+    );
 
     disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-    )?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen,)?;
     terminal.show_cursor()?;
 
     if let Err(err) = app_result {
@@ -74,32 +76,29 @@ fn run_app<B: Backend>(
         let timeout = tick_rate.saturating_sub(last_tick.elapsed());
         if event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
-
                 match app.input_mode {
-                    InputMode::Normal => {
-                        match key.code {
-                            KeyCode::Char(c) => app.on_key(c),
-                            _ => {}
+                    InputMode::Normal => match key.code {
+                        KeyCode::Char(c) => app.on_key(c),
+                        _ => {}
+                    },
+                    InputMode::Editing => match key.code {
+                        KeyCode::Enter => {
+                            app.repository_url = app.input.value().into();
+                            app.input.reset();
+                            app.input_mode = InputMode::Normal;
+                            app.should_load_repository = true;
                         }
-                    }
-                    InputMode::Editing => {
-                        match key.code {
-                            KeyCode::Enter => {
-                                app.repository_url = app.input.value().into();
-                                app.input.reset();
-                                app.input_mode = InputMode::Normal;
-                                app.should_load_repository = true;
-                            }
-                            KeyCode::Char(c) if c.eq_ignore_ascii_case(&'c') && key.modifiers.bits().eq(&0b0000_0010) => {
-                                app.should_quit = true;
-                            }
-                            _ => {
-                                app.input.handle_event(&Event::Key(key));
-                            }
+                        KeyCode::Char(c)
+                            if c.eq_ignore_ascii_case(&'c')
+                                && key.modifiers.bits().eq(&0b0000_0010) =>
+                        {
+                            app.should_quit = true;
                         }
-                    }
+                        _ => {
+                            app.input.handle_event(&Event::Key(key));
+                        }
+                    },
                 }
-
             }
         }
         if last_tick.elapsed() >= tick_rate {

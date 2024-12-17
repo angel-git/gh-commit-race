@@ -1,2 +1,2 @@
-pub mod contributors;
 pub mod api;
+pub mod contributors;

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{Error};
+use serde_json::Error;
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Contributor {
@@ -58,6 +58,5 @@ mod tests {
         assert_eq!(contributors[0].weeks[0].a, 0);
         assert_eq!(contributors[0].weeks[0].d, 0);
         assert_eq!(contributors[0].weeks[0].c, 1);
-
     }
 }
