@@ -38,6 +38,7 @@ The easiest way is to download the contributors json from the insights page of y
 - [ ] learn rust
 - [ ] add better error handling
 - [ ] improve ui
+- [ ] on Windows an error appears at startup, need to investigate, but it works anyway
 
 ## Download
 
