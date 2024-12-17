@@ -5,6 +5,8 @@ on:
 
 jobs:
   publish-windows:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write
 
@@ -13,9 +15,63 @@ jobs:
       - uses: actions/checkout@v3
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
-      - name: Build Portable Binaries (Windows)
+      - name: Build Portable Binaries (windows-latest)
         run: |
           cargo build --release
-          mv ./target/release/gh-commit-race.exe ./target/release/gh-commit-race${{ github.event.release.tag_name }}_x64.exe
-      - name: Upload Portable Binaries (Windows)
-        run: bash -c 'gh release upload ${{ github.event.release.tag_name }} ./target/release/gh-commit-race${{ github.event.release.tag_name }}_x64.exe --clobber'
+          mv ./target/release/gh-commit-race.exe ./target/release/gh-commit-race-${{ github.event.release.tag_name }}-win_x64.exe
+      - name: Upload Portable Binaries (windows-latest)
+        run: bash -c 'gh release upload ${{ github.event.release.tag_name }} ./target/release/gh-commit-race-${{ github.event.release.tag_name }}-win_x64.exe --clobber'
+
+  publish-linux:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build Portable Binaries (ubuntu-latest)
+        run: |
+          cargo build --release
+          mv ./target/release/gh-commit-race ./target/release/gh-commit-race-${{ github.event.release.tag_name }}-linux_x64
+      - name: Upload Portable Binaries (ubuntu-latest)
+        run: bash -c 'gh release upload ${{ github.event.release.tag_name }} ./target/release/gh-commit-race-${{ github.event.release.tag_name }}-linux_x64 --clobber'
+
+  publish-macos:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v3
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build Portable Binaries (macos-13)
+        run: |
+          cargo build --release
+          mv ./target/release/gh-commit-race ./target/release/gh-commit-race-${{ github.event.release.tag_name }}-macos_x64
+      - name: Upload Portable Binaries (macos-13)
+        run: bash -c 'gh release upload ${{ github.event.release.tag_name }} ./target/release/gh-commit-race-${{ github.event.release.tag_name }}-macos_x64 --clobber'
+
+  publish-macos-arm:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build Portable Binaries (macos-latest)
+        run: |
+          cargo build --release
+          mv ./target/release/gh-commit-race ./target/release/gh-commit-race-${{ github.event.release.tag_name }}-macos_arm
+      - name: Upload Portable Binaries (macos-latest)
+        run: bash -c 'gh release upload ${{ github.event.release.tag_name }} ./target/release/gh-commit-race-${{ github.event.release.tag_name }}-macos_arm --clobber'
