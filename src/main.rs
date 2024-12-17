@@ -14,6 +14,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tui_input::backend::crossterm::EventHandler;
+use clap::Parser;
 
 mod app;
 mod github;
@@ -21,7 +22,17 @@ mod utils;
 mod core;
 mod ui;
 
+#[derive(Parser, Debug)]
+#[command(about = "github commit race graph in terminal")]
+struct Args {
+    /// Location of the file with the JSON contributors data
+    #[arg(short, long)]
+    json_input: Option<String>,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
+    let args = Args::parse();
+    
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -29,7 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     let app = App::new();
-    let app_result = run_app(&mut terminal, app, Duration::from_millis(250));
+    let app_result = run_app(&mut terminal, app, Duration::from_millis(250), args.json_input);
 
     disable_raw_mode()?;
     execute!(
@@ -49,11 +60,14 @@ fn run_app<B: Backend>(
     terminal: &mut Terminal<B>,
     mut app: App,
     tick_rate: Duration,
+    json_file: Option<String>,
 ) -> io::Result<()> {
     let mut last_tick = Instant::now();
     let total_duration = Duration::from_secs(30);
     let total_ticks = (total_duration.as_millis() / tick_rate.as_millis()) as u32;
-
+    if let Some(file) = json_file {
+        app.load_repository_insights_from_json(file.as_str());
+    }
     loop {
         terminal.draw(|frame| ui::draw(frame, &mut app))?;
 

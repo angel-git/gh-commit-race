@@ -1,6 +1,7 @@
 use crate::core::commits::{get_commits_per_week, Commits, SumWeeklyCommits};
 use crate::github::api::get_contributors;
 use crate::github::contributors::serialize_contributors;
+use std::fs;
 use tui_input::Input;
 
 pub enum InputMode {
@@ -41,7 +42,10 @@ impl App {
             self.load_repository_insights();
             self.should_load_repository = false;
         }
-        if !self.should_load_repository && self.commits.is_some() && self.current_tick <= total_ticks {
+        if !self.should_load_repository
+            && self.commits.is_some()
+            && self.current_tick <= total_ticks
+        {
             let sum_weekly = self.get_week_on_tick(self.current_tick, total_ticks);
             let authors = self.get_sorted_authors(sum_weekly.0);
             self.current_week = Some(*sum_weekly.1);
@@ -60,7 +64,13 @@ impl App {
     }
 
     fn load_repository_insights(&mut self) {
-        match get_contributors(format!("https://github.com/{}/graphs/contributors-data", &self.repository_url.to_string()).as_str()) {
+        match get_contributors(
+            format!(
+                "https://github.com/{}/graphs/contributors-data",
+                &self.repository_url.to_string()
+            )
+            .as_str(),
+        ) {
             Ok(content) => {
                 let contributors = serialize_contributors(content.as_str()).unwrap();
                 let commits = get_commits_per_week(contributors);
@@ -74,14 +84,36 @@ impl App {
         }
     }
 
+    pub fn load_repository_insights_from_json(&mut self, json_path_file: &str) {
+        let file_content_result = fs::read_to_string(json_path_file);
+        match file_content_result {
+            Ok(file_content) => {
+                let contributors = serialize_contributors(file_content.as_str()).unwrap();
+                let commits = get_commits_per_week(contributors);
+                self.error = None;
+                self.commits = Some(commits);
+                self.input_mode = InputMode::Normal;
+            }
+            Err(e) => {
+                self.error = Some(format!("{}", e));
+            }
+        }
+    }
+
     fn get_week_on_tick(&self, tick_count: u32, total_ticks: u32) -> (&SumWeeklyCommits, &u32) {
         let commits = self.commits.as_ref().unwrap();
-        let weeks_per_tick = (commits.total_weeks as f64  / total_ticks  as f64).ceil() as u32;
+        let weeks_per_tick = (commits.total_weeks as f64 / total_ticks as f64).ceil() as u32;
         let week_index = (tick_count * weeks_per_tick) as usize;
         let mut commits_keys: Vec<&u32> = commits.sum_commits.keys().collect();
         commits_keys.sort();
         if week_index >= commits_keys.len() {
-            (commits.sum_commits.get(commits_keys.last().unwrap()).unwrap(), commits_keys.last().unwrap())
+            (
+                commits
+                    .sum_commits
+                    .get(commits_keys.last().unwrap())
+                    .unwrap(),
+                commits_keys.last().unwrap(),
+            )
         } else {
             let week = commits_keys.get(week_index).unwrap();
             (commits.sum_commits.get(week).unwrap(), week)
@@ -90,7 +122,8 @@ impl App {
 
     fn get_sorted_authors(&self, sum_weekly_commits: &SumWeeklyCommits) -> Vec<(String, u32)> {
         let authors: Vec<(&String, &u32)> = sum_weekly_commits.authors.iter().collect();
-        let mut sorted_authors: Vec<(String, u32)> = authors.iter().map(|(a, c)| (a.to_string(), **c)).collect();
+        let mut sorted_authors: Vec<(String, u32)> =
+            authors.iter().map(|(a, c)| (a.to_string(), **c)).collect();
         sorted_authors.sort_by(|a, b| b.1.cmp(&a.1));
         sorted_authors
     }
