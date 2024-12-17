@@ -16,6 +16,8 @@ Run `gh-commit-race --help` for the following options:
 -j, --json-input <JSON_INPUT>  Location of the file with the JSON contributors data
 -b, --blacklist <BLACKLIST>    List of contributors to blacklist
 -u, --users <USERS>            Amount of users to display [default: 5]
+-t, --tick-rate <TICK_RATE>          Tick rate in milliseconds, the lower the faster the graph will update [default: 100]
+-r, --race-duration <RACE_DURATION>  Race duration in seconds [default: 30]
 ```
 
 Example:
@@ -36,6 +38,7 @@ The easiest way is to download the contributors json from the insights page of y
 ## TODO
 
 - [ ] learn rust
+- [ ] add tests
 - [ ] add better error handling
 - [ ] improve ui
 - [ ] on Windows an error appears at startup, need to investigate, but it works anyway

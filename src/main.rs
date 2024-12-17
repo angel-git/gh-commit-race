@@ -34,6 +34,12 @@ struct Args {
     /// Amount of users to display
     #[arg(short, long, default_value_t = 5)]
     users: usize,
+    /// Tick rate in milliseconds, the lower, the faster the chart will update
+    #[arg(short, long, default_value_t = 100)]
+    tick_rate: u64,
+    /// Race duration in seconds
+    #[arg(short, long, default_value_t = 30)]
+    race_duration: u64,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -49,7 +55,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let app_result = run_app(
         &mut terminal,
         app,
-        Duration::from_millis(250),
+        Duration::from_millis(args.tick_rate),
+        Duration::from_secs(args.race_duration),
         args.json_input,
     );
 
@@ -68,11 +75,11 @@ fn run_app<B: Backend>(
     terminal: &mut Terminal<B>,
     mut app: App,
     tick_rate: Duration,
+    duration: Duration,
     json_file: Option<String>,
 ) -> io::Result<()> {
     let mut last_tick = Instant::now();
-    let total_duration = Duration::from_secs(30);
-    let total_ticks = (total_duration.as_millis() / tick_rate.as_millis()) as u32;
+    let total_ticks = (duration.as_millis() / tick_rate.as_millis()) as u32;
     if let Some(file) = json_file {
         app.load_repository_insights_from_json(file.as_str());
     }
