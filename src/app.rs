@@ -20,10 +20,11 @@ pub struct App {
     pub repository_url: String,
     pub should_load_repository: bool,
     pub should_quit: bool,
+    pub users_to_show: usize,
 }
 
 impl App {
-    pub fn new(author_blacklist: Vec<String>) -> Self {
+    pub fn new(author_blacklist: Vec<String>, users_to_show: usize) -> Self {
         Self {
             author_blacklist,
             commits: None,
@@ -36,6 +37,7 @@ impl App {
             repository_url: "".into(),
             should_load_repository: false,
             should_quit: false,
+            users_to_show,
         }
     }
 

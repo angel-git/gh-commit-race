@@ -31,6 +31,9 @@ struct Args {
     /// List of contributors to blacklist
     #[arg(short, long)]
     blacklist: Vec<String>,
+    /// Amount of users to display
+    #[arg(short, long, default_value_t = 5)]
+    users: usize,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -42,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let app = App::new(args.blacklist);
+    let app = App::new(args.blacklist, args.users);
     let app_result = run_app(
         &mut terminal,
         app,

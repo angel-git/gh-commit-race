@@ -72,21 +72,19 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         frame.render_widget(error, chunks[2]);
     }
     if let Some(authors) = app.current_tick_authors.as_ref() {
-        let layout = Layout::vertical([
-            Constraint::Length(6),
-            Constraint::Length(6),
-            Constraint::Length(6),
-            Constraint::Length(6),
-            Constraint::Length(6),
-        ]);
-        let areas: [Rect; 5] = layout.areas(chunks[2]);
+        let constraints: Vec<Constraint> = (0..app.users_to_show)
+            .map(|_| Constraint::Length(6)) // Each area will have a height of 6
+            .collect();
 
-        let only_first_five = authors[0..5].to_vec();
-        for (i, author_with_commit) in only_first_five.iter().enumerate() {
+        let layout = Layout::vertical(constraints);
+        let areas = layout.split(chunks[2]);
+
+        let top_users = authors[0..app.users_to_show].to_vec();
+        for (i, author_with_commit) in top_users.iter().enumerate() {
             if i == 0 {
                 render_gauge(author_with_commit, 1.0, areas[i], frame);
             } else {
-                let ratio: f64 = author_with_commit.1 as f64 / only_first_five[0].1 as f64;
+                let ratio: f64 = author_with_commit.1 as f64 / top_users[0].1 as f64;
                 render_gauge(author_with_commit, ratio, areas[i], frame);
             }
         }
